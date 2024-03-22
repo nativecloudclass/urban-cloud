@@ -1,24 +1,68 @@
-name: Publish docs via GitHub Pages
+name: CI
+
 on:
   push:
-    branches:
-      - main
+  pull_request:
 
 jobs:
-  build:
-    name: Deploy docs
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', 'pypy-3.9-v7.x']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade hatch
+      - name: Run tests
+        run: |
+          hatch run +py=${{ matrix.python-version }} test:with-coverage
+      - name: Upload Codecov Results
+        if: success()
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: ubuntu-latest/${{ matrix.python-version }}
+          fail_ci_if_error: false
+
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade hatch
+      - name: Check with ruff and other linters
+        run: |
+          hatch run style: lint
+          hatch run types:check
+          hatch run lint:markdown
+          hatch run lint:js
+          hatch run lint:spelling
 
-      - name: Deploy docs
-        uses: mhausenblas/mkdocs-deploy-gh-pages@master
-        # Or use mhausenblas/mkdocs-deploy-gh-pages@nomaterial to build without the mkdocs-material theme
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CUSTOM_DOMAIN: optionaldomain.com
-          CONFIG_FILE: folder/mkdocs.yml
-          EXTRA_PACKAGES: build-base
-          # GITHUB_DOMAIN: github.myenterprise.com
-          REQUIREMENTS: folder/requirements.txt
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -U build
+      - name: Build package
+        run: python -m build
+      - name: Check packaged files
+        run: |
+          # Add your commands for checking packaged files here
