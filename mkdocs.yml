@@ -1,0 +1,10 @@
+
+
+
+
+
+theme:
+  features:
+    - navigation.instant
+plugins:
+  - search
