@@ -1,15 +1,18 @@
-site_name: MkLorum
-site_url: https://example.com/
+site_name: Documentation Wiki
+
+theme:
+  name: material
+  logo: assets/logo.svg
+extra_css:
+  - stylesheets/extra.css
+extra:
+  generator: false
+copyright: Copyright &copy; 2024 urban-cloud
 
 nav:
-  - Home: 'index.md'
-  - 'User Guide':
-    - 'Writing your docs': 'writing-your-docs.md'
-    - 'Styling your docs': 'styling-your-docs.md'
-  - About:
-    - 'License': 'license.md'
-    - 'Release Notes': 'release-notes.md'
+  - Home: "index.md"
 
+  
 theme:
   name: readthedocs
   highlightjs: true
